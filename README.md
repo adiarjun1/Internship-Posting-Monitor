@@ -1,0 +1,3 @@
+JobWatcher is an automated internship‐monitoring service that lets you subscribe to any company’s job listing page and receive instant email alerts when new software‐engineering internships go live. 
+It bundles a FastAPI backend (with CRUD endpoints and Swagger UI), a Celery/Playwright scraper that runs every five minutes against your watched URLs, Redis for task queuing, and SendGrid for notifications—all containerized via Docker Compose. 
+To get started, just clone this repo, copy and populate .env.example with your SendGrid credentials, then run: docker compose up --build. Visit http://localhost:8000/docs to add or remove watches.
