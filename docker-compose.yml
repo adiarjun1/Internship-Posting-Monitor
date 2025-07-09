@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  # 🔴 Redis broker for Celery
+  redis:
+    image: redis:7
+    container_name: jobwatcher-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 🌐 FastAPI web server
+  web:
+    build: .
+    container_name: jobwatcher-web
+    depends_on:
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      # Point Celery to Redis inside the network
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      # Email settings (will be pulled from your host env)
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}
+      - ALERT_EMAIL=${ALERT_EMAIL}
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # 👷 Celery worker for background tasks
+  worker:
+    build: .
+    container_name: jobwatcher-worker
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}
+      - ALERT_EMAIL=${ALERT_EMAIL}
+    command: celery -A app.celery_app.celery_app worker --loglevel=info
+
+  # ⏰ Celery beat scheduler
+  beat:
+    build: .
+    container_name: jobwatcher-beat
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}
+      - ALERT_EMAIL=${ALERT_EMAIL}
+    command: celery -A app.celery_app.celery_app beat --loglevel=info

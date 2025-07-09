@@ -1,5 +1,19 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.sqlite3
 watchlist.db
-page.html
+venv/
+.env
+
+# Celery beat state
+celerybeat-schedule*
+*.wal
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Node/Frontend (if you ever re-add it)
+node_modules/
+dist/
